@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Spice FX
+Comment=Audio saturation and distortion plugin
+Exec=Spice\ FX
+Icon=spice-fx
+Type=Application
+Categories=AudioVideo;Audio;
+Terminal=false
+StartupNotify=true
+MimeType=application/x-vst-plugin;application/x-vst3-plugin;
