@@ -82,7 +82,9 @@ endif()
 # Plugin version info
 target_compile_definitions(Spice
     PUBLIC
-        JUCE_USE_CURL=1
+        JUCE_USE_CURL=0
+        JUCE_WEB_BROWSER=0
+        JUCE_JACK=1
         JUCE_VST3_CAN_REPLACE_VST2=0)
 
 # Generate JuceHeader.h
@@ -294,95 +296,6 @@ if(WIN32)
         if(CMAKE_BUILD_TYPE STREQUAL "Release")
             set_target_properties(Spice PROPERTIES
                 LINK_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG /OPT:REF /OPT:ICF")
-        endif()
-    endif()
-endif()
-
-# Linux-specific configuration
-if(UNIX AND NOT APPLE)
-    # Find required packages
-    find_package(PkgConfig REQUIRED)
-    
-    # Option for static linking
-    option(BUILD_STATIC "Build statically linked binaries" OFF)
-    
-    if(BUILD_STATIC)
-        set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-        set(BUILD_SHARED_LIBS OFF)
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
-    endif()
-    
-    # Find GTK3
-    pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
-    
-    # Find WebKit2GTK (optional)
-    pkg_check_modules(WEBKIT2 webkit2gtk-4.1)
-    if(NOT WEBKIT2_FOUND)
-        # Try older version
-        pkg_check_modules(WEBKIT2 webkit2gtk-4.0)
-    endif()
-    
-    if(WEBKIT2_FOUND)
-        target_compile_definitions(Spice PRIVATE JUCE_WEB_BROWSER=1)
-        target_compile_options(Spice PRIVATE ${WEBKIT2_CFLAGS})
-        target_link_directories(Spice PRIVATE ${WEBKIT2_LIBRARY_DIRS})
-        target_link_libraries(Spice PRIVATE ${WEBKIT2_LIBRARIES})
-        target_include_directories(Spice PRIVATE ${WEBKIT2_INCLUDE_DIRS})
-    else()
-        # Disable web browser if webkit is not found
-        target_compile_definitions(Spice PRIVATE JUCE_WEB_BROWSER=0)
-        message(STATUS "WebKit2GTK not found - web browser support disabled")
-    endif()
-    
-    # Find CURL for network support
-    find_package(CURL REQUIRED)
-    
-    # Add GTK3 flags to the main target
-    target_compile_options(Spice PRIVATE ${GTK3_CFLAGS})
-    target_link_directories(Spice PRIVATE ${GTK3_LIBRARY_DIRS})
-    target_link_libraries(Spice PRIVATE ${GTK3_LIBRARIES})
-    target_include_directories(Spice PRIVATE ${GTK3_INCLUDE_DIRS})
-    
-    # Link CURL, GTK, and WebKit to all plugin targets
-    if(TARGET Spice_LV2)
-        target_link_libraries(Spice_LV2 PRIVATE ${CURL_LIBRARIES} ${GTK3_LIBRARIES})
-        target_include_directories(Spice_LV2 PRIVATE ${CURL_INCLUDE_DIRS} ${GTK3_INCLUDE_DIRS})
-        target_compile_options(Spice_LV2 PRIVATE ${GTK3_CFLAGS})
-        target_link_directories(Spice_LV2 PRIVATE ${GTK3_LIBRARY_DIRS})
-        
-        if(WEBKIT2_FOUND)
-            target_link_libraries(Spice_LV2 PRIVATE ${WEBKIT2_LIBRARIES})
-            target_include_directories(Spice_LV2 PRIVATE ${WEBKIT2_INCLUDE_DIRS})
-            target_compile_options(Spice_LV2 PRIVATE ${WEBKIT2_CFLAGS})
-            target_link_directories(Spice_LV2 PRIVATE ${WEBKIT2_LIBRARY_DIRS})
-        endif()
-    endif()
-    
-    if(TARGET Spice_VST3)
-        target_link_libraries(Spice_VST3 PRIVATE ${CURL_LIBRARIES} ${GTK3_LIBRARIES})
-        target_include_directories(Spice_VST3 PRIVATE ${CURL_INCLUDE_DIRS} ${GTK3_INCLUDE_DIRS})
-        target_compile_options(Spice_VST3 PRIVATE ${GTK3_CFLAGS})
-        target_link_directories(Spice_VST3 PRIVATE ${GTK3_LIBRARY_DIRS})
-        
-        if(WEBKIT2_FOUND)
-            target_link_libraries(Spice_VST3 PRIVATE ${WEBKIT2_LIBRARIES})
-            target_include_directories(Spice_VST3 PRIVATE ${WEBKIT2_INCLUDE_DIRS})
-            target_compile_options(Spice_VST3 PRIVATE ${WEBKIT2_CFLAGS})
-            target_link_directories(Spice_VST3 PRIVATE ${WEBKIT2_LIBRARY_DIRS})
-        endif()
-    endif()
-    
-    if(TARGET Spice_Standalone)
-        target_link_libraries(Spice_Standalone PRIVATE ${CURL_LIBRARIES} ${GTK3_LIBRARIES})
-        target_include_directories(Spice_Standalone PRIVATE ${CURL_INCLUDE_DIRS} ${GTK3_INCLUDE_DIRS})
-        target_compile_options(Spice_Standalone PRIVATE ${GTK3_CFLAGS})
-        target_link_directories(Spice_Standalone PRIVATE ${GTK3_LIBRARY_DIRS})
-        
-        if(WEBKIT2_FOUND)
-            target_link_libraries(Spice_Standalone PRIVATE ${WEBKIT2_LIBRARIES})
-            target_include_directories(Spice_Standalone PRIVATE ${WEBKIT2_INCLUDE_DIRS})
-            target_compile_options(Spice_Standalone PRIVATE ${WEBKIT2_CFLAGS})
-            target_link_directories(Spice_Standalone PRIVATE ${WEBKIT2_LIBRARY_DIRS})
         endif()
     endif()
 endif()
